@@ -43,7 +43,7 @@ function view_public(?string $draft = null): never
     if ($isPreview) {
         $previewBase = $baseUrl !== '' ? $baseUrl : 'https://your-public-address';
         $filled      = fill_placeholders($markdown, $previewBase, null);
-        $document    = assistant_page_html(page_title($filled), markdown_to_html($filled), $previewBase);
+        $document    = assistant_page_html(page_title($filled), markdown_to_html($filled), $previewBase, true);
         $html .= '<section class="stack" style="gap:12px"><h2>Preview</h2>'
             . '<iframe class="preview" title="Preview of the public page" sandbox srcdoc="' . e($document) . '"></iframe></section>';
     }

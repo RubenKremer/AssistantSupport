@@ -81,20 +81,26 @@ footer code{font-size:12px}
 @media (max-width:480px){h1{font-size:32px}main.wrap{padding-top:40px}}
 CSS;
 
-function render(string $title, string $bodyHtml, int $status = 200): never
+/**
+ * Sends an assistant-side page. $public = true for the public welcome page:
+ * only that page has a plain-text version at /llms.txt, so only it links there.
+ */
+function render(string $title, string $bodyHtml, int $status = 200, bool $public = false): never
 {
     http_response_code($status);
     header('Content-Type: text/html; charset=utf-8');
-    echo assistant_page_html($title, $bodyHtml, base_url());
+    echo assistant_page_html($title, $bodyHtml, base_url(), $public);
     exit;
 }
 
 /** The full assistant-side page; also used for the preview in the admin panel. */
-function assistant_page_html(string $title, string $bodyHtml, string $baseUrl): string
+function assistant_page_html(string $title, string $bodyHtml, string $baseUrl, bool $public = false): string
 {
-    $llms   = $baseUrl . '/llms.txt';
+    $llms   = $public
+        ? '<span>Machine-readable version: <a href="' . e($baseUrl . '/llms.txt') . '"><code>/llms.txt</code></a></span>'
+        : '<span></span>';
     $footer = '<footer><div class="wrap"><div class="line">'
-        . '<span>Machine-readable version: <a href="' . e($llms) . '"><code>/llms.txt</code></a></span>'
+        . $llms
         . '<span>Plain GET requests only</span>'
         . '</div></div></footer>';
 

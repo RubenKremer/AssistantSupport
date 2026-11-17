@@ -49,7 +49,7 @@ if (!isset($_GET['pass'])) {
         render('Not found', '<h1>Page not found</h1>', 404);
     }
     $markdown = fill_placeholders($markdown, $baseUrl, null);
-    render(page_title($markdown), markdown_to_html($markdown));
+    render(page_title($markdown), markdown_to_html($markdown), 200, $page === 'index');
 }
 
 // ---------------------------------------------------------------------------
