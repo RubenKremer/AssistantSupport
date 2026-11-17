@@ -141,20 +141,62 @@ function check_access(): bool
     $country = country_for_ip(client_ip());
     $rules   = settings()['security'];
 
+    $ip        = client_ip();
     $clientOk  = client_allowed($client, $version, $rules['clients']['rules']);
     $countryOk = country_allowed($country, $rules['countries']['allowed']);
     $blocked   = (!$clientOk && $rules['clients']['mode'] === 'enforce')
               || (!$countryOk && $rules['countries']['mode'] === 'enforce');
     $status    = $blocked ? 'blocked' : ($clientOk && $countryOk ? 'allowed' : 'would_block');
 
-    record_visit($client, $version, $country, $ua, $status);
+    $reason = '';
+    if (!$countryOk) {
+        $reason = 'Country not allowed';
+    } elseif (!$clientOk) {
+        $reason = client_rule_for($client, $rules['clients']['rules']) !== null
+            ? $client . ' ' . ($version ?? '?') . ' below minimum'
+            : $client . ' not on the allowlist';
+    }
+
+    record_visit($client, $version, $country, $ua, $status, $ip, $reason);
     return !$blocked;
 }
 
-function record_visit(string $client, ?int $version, string $country, string $ua, string $status): void
+function client_rule_for(string $client, array $rules): ?array
+{
+    foreach ($rules as $rule) {
+        if (strcasecmp((string) ($rule['client'] ?? ''), $client) === 0) {
+            return $rule;
+        }
+    }
+    return null;
+}
+
+/** What kind of client a simplified name stands for, shown under its name. */
+function client_kind(string $client): string
+{
+    return match ($client) {
+        'Grok', 'ChatGPT', 'Claude', 'Perplexity', 'Gemini' => 'AI assistant fetcher',
+        'Googlebot', 'Bingbot', 'Other bot'                 => 'Search engine or bot',
+        'curl', 'Wget', 'Python', 'Go HTTP client'          => 'Command line or script',
+        'Tesla browser'                                     => 'Car browser',
+        'Unknown', 'No user agent'                          => 'Unrecognised',
+        default                                             => 'Web browser',
+    };
+}
+
+const MAX_BLOCKED_ROWS = 50;
+
+function record_visit(string $client, ?int $version, string $country, string $ua, string $status, string $ip = '', string $reason = ''): void
 {
     $key = $client . '|' . ($version ?? '') . '|' . $country;
-    update_json(VISITORS_FILE, [], function (array $data) use ($key, $client, $version, $country, $ua, $status) {
+    update_json(VISITORS_FILE, [], function (array $data) use ($key, $client, $version, $country, $ua, $status, $ip, $reason) {
+        // Requests that are (or, with the switch off, would be) blocked.
+        $blockedLog = (array) ($data['blocked'] ?? []);
+        if ($status !== 'allowed') {
+            array_unshift($blockedLog, ['ip' => $ip, 'country' => $country, 'reason' => $reason, 'when' => date('c'), 'enforced' => $status === 'blocked']);
+            $blockedLog = array_slice($blockedLog, 0, MAX_BLOCKED_ROWS);
+        }
+
         $visitors = (array) ($data['visitors'] ?? []);
         $row = $visitors[$key] ?? ['client' => $client, 'version' => $version, 'country' => $country, 'first' => date('c'), 'count' => 0];
         $row['last']   = date('c');
@@ -168,19 +210,47 @@ function record_visit(string $client, ?int $version, string $country, string $ua
             uasort($visitors, fn ($a, $b) => strcmp($b['last'], $a['last']));
             $visitors = array_slice($visitors, 0, MAX_VISITOR_ROWS, true);
         }
-        return ['visitors' => $visitors];
+        return ['visitors' => $visitors, 'blocked' => $blockedLog];
     });
 }
 
-/** Newest first. */
-function list_visitors(): array
+/**
+ * Visitors of the last $days days, grouped per client:
+ * [{client, kind, min, max, versions[], requests, last}], most recent first.
+ */
+function list_clients_seen(int $days = 30): array
 {
-    $visitors = array_values((array) (read_json(VISITORS_FILE)['visitors'] ?? []));
-    usort($visitors, fn ($a, $b) => strcmp((string) $b['last'], (string) $a['last']));
-    return $visitors;
+    $cutoff  = date('c', time() - $days * 86400);
+    $clients = [];
+    foreach ((array) (read_json(VISITORS_FILE)['visitors'] ?? []) as $v) {
+        if (strcmp((string) ($v['last'] ?? ''), $cutoff) < 0) {
+            continue;
+        }
+        $name = (string) $v['client'];
+        $c = $clients[$name] ?? ['client' => $name, 'kind' => client_kind($name), 'versions' => [], 'requests' => 0, 'last' => ''];
+        if ($v['version'] !== null) {
+            $c['versions'][] = (int) $v['version'];
+        }
+        $c['requests'] += (int) $v['count'];
+        $c['last'] = max($c['last'], (string) $v['last']);
+        $clients[$name] = $c;
+    }
+    foreach ($clients as &$c) {
+        $c['min'] = $c['versions'] === [] ? null : min($c['versions']);
+        $c['max'] = $c['versions'] === [] ? null : max($c['versions']);
+    }
+    unset($c);
+    usort($clients, fn ($a, $b) => strcmp($b['last'], $a['last']));
+    return $clients;
+}
+
+/** Recently (would-be) blocked requests, newest first. */
+function list_blocked(int $limit = 10): array
+{
+    return array_slice((array) (read_json(VISITORS_FILE)['blocked'] ?? []), 0, $limit);
 }
 
 function clear_visitors(): void
 {
-    write_json(VISITORS_FILE, ['visitors' => []]);
+    write_json(VISITORS_FILE, ['visitors' => [], 'blocked' => []]);
 }

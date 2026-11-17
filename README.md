@@ -33,8 +33,8 @@ Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN
 - **Skills**: what the assistant can do; only enabled skills are sent.
 - **Links**: dashboards, docs and tools you use often.
 - **Memories**: browse, search, edit and delete what the assistant saved.
-- **Security**: which clients and countries may open the assistant side, the visitor list and the passphrase lockout (see below).
-- **Settings**: the passphrase, the public address, lockout limits and the public welcome page.
+- **Security**: browsers seen in the last 30 days, a browser allowlist and a geo lock, each with an on/off switch, and the recently blocked requests (see below).
+- **Settings**: the passphrase (with "Suggest one"), lockout limits and status, the public address, the welcome page, and the admin account (read-only).
 
 ## Assistant URLs (port 80)
 
@@ -59,7 +59,7 @@ Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN
 
 Under **Security** you can allow only certain clients (a simplified user agent such as "Safari 18", "Chrome 131" or "Grok") with a minimum version, and only certain countries (from the requesting IP address).
 
-- Each has a mode: **Monitor** only logs what would be blocked, **Enforce** really blocks. New installs start in Monitor.
+- Each has an on/off switch. While it is off nothing is blocked, but the tables show what *would* be blocked, so you can check before switching it on. New installs start with both off.
 - **Your assistant fetches pages from its provider's servers, not from your car.** The client name and country you see are those of the AI provider. Check the visitor list before switching to Enforce, or you lock your own assistant out.
 - Requests from your own network and from addresses without a known country are always allowed.
 - Behind a reverse proxy on your own network, the visitor's address is taken from `X-Forwarded-For`.
@@ -139,6 +139,8 @@ Open the admin panel at http://localhost:8081, sign in, and set a passphrase und
 Add a container with:
 
 - Repository: `ghcr.io/rubenkremer/assistantsupport:latest`
+- Icon URL: `https://raw.githubusercontent.com/RubenKremer/AssistantSupport/main/assets/brand/unraid-icon.png`
+- WebUI: `http://[IP]:[PORT:8080]/` (opens the admin panel)
 - Port: container `80` → host port of your choice (assistant side)
 - Port: container `8080` → another host port (admin panel)
 - Path: `/data` → `/mnt/user/appdata/assistant-support/data`
@@ -163,6 +165,9 @@ src/layout.php            assistant-side layout and stylesheet
 src/admin/                admin pages, layout and stylesheet
 src/cli/update-geo.php    DB-IP Lite downloader
 public/fonts/             Inter and JetBrains Mono (SIL Open Font License)
+public/favicon.*          favicons (also copied into the admin site)
+assets/brand/             brand mark (icon.svg) and the 512 px Unraid app icon
+src/countries.php         country names for the geo lock
 defaults/                 first-run content for /data
 docker/                   Apache config and entrypoint
 ```

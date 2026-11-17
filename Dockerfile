@@ -27,6 +27,7 @@ COPY src/    /var/www/src/
 COPY public/ /var/www/html/
 COPY admin/  /var/www/admin/
 COPY public/fonts/ /var/www/admin/fonts/
+COPY public/favicon.svg public/favicon.ico public/apple-touch-icon.png /var/www/admin/
 
 # Default content (welcome page, example context), copied to /data on first start.
 COPY defaults/ /defaults/

@@ -20,6 +20,11 @@ const FONT_CSS = <<<'CSS'
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url(/fonts/jetbrains-mono.woff2) format("woff2")}
 CSS;
 
+/** Favicons, served from the root of both the assistant and the admin site. */
+const FAVICON_LINKS = '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+    . '<link rel="icon" href="/favicon.ico" sizes="16x16 32x32">'
+    . '<link rel="apple-touch-icon" href="/apple-touch-icon.png">';
+
 /** The logo mark: brackets around a dot. */
 function logo_mark(int $size = 17): string
 {
@@ -83,6 +88,7 @@ function render(string $title, string $bodyHtml, int $status = 200): never
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>' . e($title) . ' · AssistantSupport</title>
+' . FAVICON_LINKS . '
 <style>' . FONT_CSS . PAGE_CSS . '</style>
 </head>
 <body>

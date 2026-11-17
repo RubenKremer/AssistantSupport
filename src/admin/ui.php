@@ -125,6 +125,7 @@ const ICONS = [
     'search'    => '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
     'edit'      => '<path d="M4 20h4L19 9l-4-4L4 16v4z"/>',
     'trash'     => '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
+    'refresh'   => '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
 ];
 
 function icon(string $name): string
@@ -225,6 +226,7 @@ function admin_document(string $title, string $body): never
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
         . '<meta name="robots" content="noindex, nofollow">'
         . '<title>' . e($title) . ' · AssistantSupport admin</title>'
+        . FAVICON_LINKS
         . '<style>' . FONT_CSS . ADMIN_CSS . '</style></head><body>' . $body . '</body></html>';
     exit;
 }
@@ -363,5 +365,35 @@ td.right{text-align:right}
 .pill{margin-left:2px;padding:2px 8px;border-radius:6px;background:#F0F0F0;font-size:11px;font-weight:500;color:#525252;letter-spacing:0}
 .login-head h1{font-size:24px;letter-spacing:-.02em}
 .login-foot{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:12px;color:#737373}
+.panel{border:1px solid #EDEDED;border-radius:16px;overflow:hidden}
+.panel-head{padding:20px 24px;border-bottom:1px solid #EDEDED;display:flex;flex-direction:column;gap:4px}
+.panel-head.row{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.panel-head.row>div{display:flex;flex-direction:column;gap:4px;flex:1 1 320px}
+.panel-body{padding:24px}
+.list.flat{border:0;border-radius:0}
+.list.flat>li{padding:12px 24px;gap:12px}
+.box{padding:14px 16px;border-radius:12px;background:#FAFAFA}
+.box.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.field-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px}
+.good{font-weight:500;color:#15803D}
+.bad{font-weight:500;color:#B91C1C}
+input.big{min-height:44px;font-size:15px}
+input[readonly]{background:#FAFAFA;color:#525252}
+.danger-text{color:#B91C1C}
+.danger-text:hover{color:#B91C1C}
+.switch.lg{width:44px;height:26px;border-radius:13px;margin:0;flex:none}
+.switch.lg::after{width:20px;height:20px;border-radius:10px}
+.switch.lg[aria-checked=true]::after{left:21px}
+.pill{display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:12px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill.ok{background:#ECFDF3;color:#15803D}
+.pill.bad{background:#FEF2F2;color:#B91C1C}
+.pill.warn{background:#FFFBEB;color:#92400E}
+.status-cell{display:inline-flex;align-items:center;gap:8px}
+.country{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 4px 0 6px;border:1px solid #E4E4E4;border-radius:17px;font-size:13px}
+.country .code{padding:2px 6px;border-radius:10px;background:#F4F4F5;font-size:11px;font-weight:600;color:#3F3F46}
+.icon-btn.tiny{width:26px;height:26px;border-radius:13px}
+.blocked{list-style:none;margin:0;padding:0;border:1px solid #EDEDED;border-radius:12px;overflow:hidden}
+.blocked li{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 16px;font-size:13px}
+.blocked li+li{border-top:1px solid #F2F2F2}
 @media (max-width:600px){.content{padding:28px 16px 48px}.mem-detail{padding:20px}.mem-list{border-right:0;border-bottom:1px solid #EDEDED}}
 CSS;

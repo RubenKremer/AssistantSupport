@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = [
     'base_url'          => '',
     'max_attempts'      => 5,
     'lockout_minutes'   => 15,
+    'updated'           => null,
     'security'          => [
         'clients'   => ['mode' => 'monitor', 'rules' => []],     // rules: [{client, min_version}]
         'countries' => ['mode' => 'monitor', 'allowed' => []],   // allowed: ["NL", "US", ...]
