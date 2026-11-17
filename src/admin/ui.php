@@ -314,9 +314,13 @@ fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:14px
 .card.soft{background:#FAFAFA;border-color:#FAFAFA;gap:6px}
 .card.well{background:#FAFAFA}
 .card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
-.form-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}
-.form-row>.field{flex:1 1 200px}
+.form-row{display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:12px}
+.card.form-row{padding:16px}
+.form-row>.btn{flex:none}
+.form-row>.field{flex:1 1 200px;min-width:0}
 .form-row>.field.grow{flex:2 1 280px}
+.plain-link{color:inherit;text-decoration:none}
+.plain-link:hover{color:#0A0A0A;text-decoration:underline}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{position:relative}
 .chip input{position:absolute;opacity:0;inset:0;margin:0}

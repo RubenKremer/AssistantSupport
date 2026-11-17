@@ -197,7 +197,7 @@ function view_links(): never
         $title = (string) ($l['title'] ?? '');
         $rows .= '<tr>'
             . '<td><span class="title-cell"><span class="initial" aria-hidden="true">' . e(mb_strtoupper(mb_substr($title, 0, 1))) . '</span>' . e($title) . '</span></td>'
-            . '<td class="muted nowrap"><a href="' . e((string) $l['url']) . '" target="_blank" rel="noopener noreferrer" style="color:inherit">' . e(url_without_scheme((string) $l['url'])) . '</a></td>'
+            . '<td class="muted nowrap"><a href="' . e((string) $l['url']) . '" target="_blank" rel="noopener noreferrer" class="plain-link">' . e(url_without_scheme((string) $l['url'])) . '</a></td>'
             . '<td class="muted nowrap">' . e(format_date($l['added'] ?? null, false)) . '</td>'
             . '<td class="right nowrap"><a class="icon-btn" href="?p=links&amp;edit=' . e($l['id']) . '" aria-label="Edit ' . e($title) . '">' . icon('edit') . '</a>'
             . post_button('links', 'delete_link', ['id' => $l['id']], icon('trash'), 'icon-btn', 'Delete ' . $title) . '</td>'
