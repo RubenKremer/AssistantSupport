@@ -72,7 +72,10 @@ function render_context_page(string $privateBase): string
     if ($c['links'] !== []) {
         $html .= '<h2>Links</h2><p>Places your user uses often. You may open them when they are relevant.</p><ul>';
         foreach ($c['links'] as $l) {
-            $html .= '<li><a href="' . e($l['url'] ?? '') . '">' . e($l['title'] ?? '') . '</a> — <code>' . e($l['url'] ?? '') . '</code></li>';
+            $description = (string) ($l['description'] ?? '');
+            $html .= '<li><strong><a href="' . e($l['url'] ?? '') . '">' . e($l['title'] ?? '') . '</a></strong>'
+                . ($description !== '' ? ': ' . e($description) : '')
+                . '<br><code>' . e($l['url'] ?? '') . '</code></li>';
         }
         $html .= '</ul>';
     }

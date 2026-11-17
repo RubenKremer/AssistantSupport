@@ -32,7 +32,7 @@ Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN
 
 - **Backstory**: assistant name, role, tone, default language and a Markdown backstory.
 - **Skills**: what the assistant can do and how, in Markdown; only enabled skills are sent.
-- **Links**: dashboards, docs and tools you use often.
+- **Links**: dashboards, docs and tools you use often, each with an optional short description so the assistant knows when to use it.
 - **Public page**: the welcome page the assistant reads first, with a preview that shows it exactly as the assistant sees it before you save.
 - **Memories**: browse, search, edit and delete what the assistant saved. Summaries are Markdown.
 - **Skill usage**: every time the assistant opened a skill link, per skill (total, last 7 days, last used) and as a list of recent uses.

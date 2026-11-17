@@ -201,19 +201,23 @@ function view_links(): never
             flash('That link no longer exists.', 'error');
             redirect_to(['p' => 'links']);
         }
-        $html = page_header('Edit link', 'Change the title or address.')
+        $html = page_header('Edit link', 'Change the title, address or description.')
             . '<form method="post" action="?p=links" class="card stack">' . csrf_field()
             . '<input type="hidden" name="action" value="save_link"><input type="hidden" name="id" value="' . e($link['id']) . '">'
-            . link_fields((string) $link['title'], (string) $link['url'])
+            . link_fields((string) $link['title'], (string) $link['url'], (string) ($link['description'] ?? ''))
             . '<div class="head-actions"><button type="submit" class="btn">Save link</button><a class="btn ghost" href="?p=links">Cancel</a></div></form>';
         admin_page('links', 'Edit link', $html);
     }
 
     $rows = '';
     foreach ($links as $l) {
-        $title = (string) ($l['title'] ?? '');
+        $title       = (string) ($l['title'] ?? '');
+        $description = (string) ($l['description'] ?? '');
         $rows .= '<tr>'
-            . '<td><span class="title-cell"><span class="initial" aria-hidden="true">' . e(mb_strtoupper(mb_substr($title, 0, 1))) . '</span>' . e($title) . '</span></td>'
+            . '<td><span class="title-cell"><span class="initial" aria-hidden="true">' . e(mb_strtoupper(mb_substr($title, 0, 1))) . '</span>'
+            . '<span class="stack" style="gap:2px"><span>' . e($title) . '</span>'
+            . ($description !== '' ? '<span class="muted" style="font-weight:400">' . e($description) . '</span>' : '')
+            . '</span></span></td>'
             . '<td class="muted nowrap"><a href="' . e((string) $l['url']) . '" target="_blank" rel="noopener noreferrer" class="plain-link">' . e(url_without_scheme((string) $l['url'])) . '</a></td>'
             . '<td class="muted nowrap">' . e(format_date($l['added'] ?? null, false)) . '</td>'
             . '<td class="right nowrap"><a class="icon-btn" href="?p=links&amp;edit=' . e($l['id']) . '" aria-label="Edit ' . e($title) . '">' . icon('edit') . '</a>'
@@ -227,17 +231,21 @@ function view_links(): never
 
     $html = page_header('Links', 'Places your assistant should know about: dashboards, docs and tools you use often.')
         . '<form method="post" action="?p=links" class="card well form-row">' . csrf_field()
-        . '<input type="hidden" name="action" value="add_link">' . link_fields('', '')
+        . '<input type="hidden" name="action" value="add_link">' . link_fields('', '', '')
         . '<button type="submit" class="btn">Add link</button></form>'
         . $table;
 
     admin_page('links', 'Links', $html);
 }
 
-function link_fields(string $title, string $url): string
+const MAX_LINK_DESCRIPTION = 300;
+
+function link_fields(string $title, string $url, string $description): string
 {
     return '<div class="field"><label for="lt">Title</label><input id="lt" type="text" name="title" maxlength="100" required placeholder="Team roadmap" value="' . e($title) . '"></div>'
-        . '<div class="field grow"><label for="lu">URL</label><input id="lu" type="text" inputmode="url" name="url" maxlength="2000" required placeholder="https://" value="' . e($url) . '"></div>';
+        . '<div class="field grow"><label for="lu">URL</label><input id="lu" type="text" inputmode="url" name="url" maxlength="2000" required placeholder="https://" value="' . e($url) . '"></div>'
+        . '<div class="field grow"><label for="ld">Short description <span class="hint">optional</span></label>'
+        . '<input id="ld" type="text" name="description" maxlength="' . MAX_LINK_DESCRIPTION . '" placeholder="What it is for, so your assistant knows when to use it" value="' . e($description) . '"></div>';
 }
 
 function post_links(array $in): never
@@ -252,11 +260,13 @@ function post_links(array $in): never
             flash('A link needs a title and a valid http(s) address.', 'error');
             redirect_to($action === 'save_link' ? ['p' => 'links', 'edit' => $id] : ['p' => 'links']);
         }
-        update_context(function (array $c) use ($action, $id, $title, $url) {
+        $description = clean_line((string) ($in['description'] ?? ''), MAX_LINK_DESCRIPTION);
+        update_context(function (array $c) use ($action, $id, $title, $url, $description) {
             if ($action === 'add_link') {
-                array_unshift($c['links'], ['id' => new_id(), 'title' => $title, 'url' => $url, 'added' => date('c')]);
+                array_unshift($c['links'], ['id' => new_id(), 'title' => $title, 'url' => $url, 'description' => $description, 'added' => date('c')]);
             } else {
-                $c['links'] = array_map(fn ($l) => ($l['id'] ?? '') === $id ? array_merge($l, ['title' => $title, 'url' => $url]) : $l, $c['links']);
+                $c['links'] = array_map(fn ($l) => ($l['id'] ?? '') === $id
+                    ? array_merge($l, ['title' => $title, 'url' => $url, 'description' => $description]) : $l, $c['links']);
             }
             return $c;
         });
