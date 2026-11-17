@@ -83,15 +83,22 @@ CSS;
 
 function render(string $title, string $bodyHtml, int $status = 200): never
 {
-    $llms   = base_url() . '/llms.txt';
+    http_response_code($status);
+    header('Content-Type: text/html; charset=utf-8');
+    echo assistant_page_html($title, $bodyHtml, base_url());
+    exit;
+}
+
+/** The full assistant-side page; also used for the preview in the admin panel. */
+function assistant_page_html(string $title, string $bodyHtml, string $baseUrl): string
+{
+    $llms   = $baseUrl . '/llms.txt';
     $footer = '<footer><div class="wrap"><div class="line">'
         . '<span>Machine-readable version: <a href="' . e($llms) . '"><code>/llms.txt</code></a></span>'
         . '<span>Plain GET requests only</span>'
         . '</div></div></footer>';
 
-    http_response_code($status);
-    header('Content-Type: text/html; charset=utf-8');
-    echo '<!doctype html>
+    return '<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -111,5 +118,4 @@ function render(string $title, string $bodyHtml, int $status = 200): never
 ' . $footer . '
 </body>
 </html>';
-    exit;
 }

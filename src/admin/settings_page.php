@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin: Settings. Assistant access (passphrase, lockout), the assistant page
- * (public address, welcome text) and the admin account (read-only: it comes
+ * (public address) and the admin account (read-only: it comes
  * from the container's environment).
  */
 
@@ -91,13 +91,11 @@ function view_settings(): never
 
         // Assistant page
         . '<section class="panel"><div class="panel-head"><h2>Assistant page</h2>'
-        . '<p class="muted">Where your assistant finds you, and the public page it reads first.</p></div>'
+        . '<p class="muted">Where your assistant finds you. Edit the text it reads first under <a href="?p=public">Public page</a>.</p></div>'
         . '<div class="panel-body stack" style="gap:20px">'
         . '<div class="field"><label for="bu">Public address <span class="hint">without a trailing slash</span></label>'
         . '<input id="bu" type="text" inputmode="url" name="base_url" maxlength="300" placeholder="https://assistant.example.com" value="' . e((string) $s['base_url']) . '">'
         . '<span class="hint">Used in the links on the assistant pages. Leave empty to take it from each request.</span></div>'
-        . '<div class="field"><div class="field-head"><label for="wp">Welcome page</label><span class="hint">Markdown · <code>{{base}}</code> becomes the public address</span></div>'
-        . '<textarea id="wp" name="welcome" rows="18" class="mono">' . e(read_content('public/index.md')) . '</textarea></div>'
         . '</div></section>'
         . '</form>'
 
@@ -138,12 +136,6 @@ function post_settings(array $in): never
         $s['updated']         = date('c');
         return $s;
     });
-
-    $welcome = CONTENT_DIR . '/public/index.md';
-    if (!is_dir(dirname($welcome))) {
-        mkdir(dirname($welcome), 0775, true);
-    }
-    file_put_contents($welcome, clean_text((string) ($in['welcome'] ?? ''), 50000) . "\n", LOCK_EX);
 
     // The passphrase field is only used when something was typed in it.
     $passphrase = trim((string) ($in['passphrase'] ?? ''));

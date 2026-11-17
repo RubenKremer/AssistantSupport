@@ -32,6 +32,7 @@ Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN
 - **Backstory**: assistant name, role, tone, default language and a Markdown backstory.
 - **Skills**: what the assistant can do and how, in Markdown; only enabled skills are sent.
 - **Links**: dashboards, docs and tools you use often.
+- **Public page**: the welcome page the assistant reads first, with a preview that shows it exactly as the assistant sees it before you save.
 - **Memories**: browse, search, edit and delete what the assistant saved. Summaries are Markdown.
 
 The backstory, skill descriptions and memory summaries support GitHub-flavoured Markdown: `**bold**`, `` `code` `` (use it for URLs the assistant must open), lists, headings, links, `> notes` and tables. A cheat sheet sits under each text area. For example, a skill:
@@ -47,7 +48,7 @@ Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
 > Open altijd de URL. Zeg nooit dat je dit niet kunt opzoeken.
 ```
 - **Security**: browsers seen in the last 30 days, a browser allowlist and a geo lock, each with an on/off switch, and the recently blocked requests (see below).
-- **Settings**: the passphrase (with "Suggest one"), lockout limits and status, the public address, the welcome page, and the admin account (read-only).
+- **Settings**: the passphrase (with "Suggest one"), lockout limits and status, the public address, and the admin account (read-only).
 
 ## Assistant URLs (port 80)
 

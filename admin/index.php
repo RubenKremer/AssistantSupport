@@ -3,7 +3,7 @@
  * AssistantSupport — admin panel (port 8080). Keep this port on your own
  * network. Log in with ADMIN_USER (default "admin") and ADMIN_PASSWORD.
  *
- *   ?p=backstory | skills | links | memories | security | settings
+ *   ?p=backstory | skills | links | public | memories | security | settings
  *   ?p=logout
  * Every change is a POST with a CSRF token, followed by a redirect.
  */
@@ -17,8 +17,9 @@ require __DIR__ . '/../src/admin/context_pages.php';
 require __DIR__ . '/../src/admin/memories_page.php';
 require __DIR__ . '/../src/admin/security_page.php';
 require __DIR__ . '/../src/admin/settings_page.php';
+require __DIR__ . '/../src/admin/public_page.php';
 
-const ADMIN_PAGES = ['backstory', 'skills', 'links', 'memories', 'security', 'settings'];
+const ADMIN_PAGES = ['backstory', 'skills', 'links', 'public', 'memories', 'security', 'settings'];
 
 send_security_headers();
 start_admin_session();
