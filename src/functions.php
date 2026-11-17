@@ -28,6 +28,7 @@ require __DIR__ . '/storage.php';
 require __DIR__ . '/settings.php';
 require __DIR__ . '/context.php';
 require __DIR__ . '/memories.php';
+require __DIR__ . '/skill_usage.php';
 require __DIR__ . '/countries.php';
 require __DIR__ . '/security.php';
 require __DIR__ . '/layout.php';

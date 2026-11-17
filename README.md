@@ -35,21 +35,37 @@ Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN
 - **Links**: dashboards, docs and tools you use often.
 - **Public page**: the welcome page the assistant reads first, with a preview that shows it exactly as the assistant sees it before you save.
 - **Memories**: browse, search, edit and delete what the assistant saved. Summaries are Markdown.
-
-The backstory, skill descriptions and memory summaries support GitHub-flavoured Markdown: `**bold**`, `` `code` `` (use it for URLs the assistant must open), lists, headings, links, `> notes` and tables. A cheat sheet sits under each text area. For example, a skill:
-
-```markdown
-Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
-
-1. Haal streepjes en spaties uit het kenteken: `AB-123-C` wordt `AB123C`.
-2. Open deze URL, met het kenteken ingevuld:
-   `https://ovi.rdw.nl/?kenteken={kenteken}`
-3. Vertel kort het merk, het model, de kleur en wanneer de APK verloopt.
-
-> Open altijd de URL. Zeg nooit dat je dit niet kunt opzoeken.
-```
+- **Skill usage**: every time the assistant opened a skill link, per skill (total, last 7 days, last used) and as a list of recent uses.
 - **Security**: browsers seen in the last 30 days, a browser allowlist and a geo lock, each with an on/off switch, and the recently blocked requests (see below).
 - **Settings**: the passphrase (with "Suggest one"), lockout limits and status, the public address, and the admin account (read-only).
+
+### Markdown
+
+The backstory, skill descriptions and memory summaries support GitHub-flavoured Markdown: `**bold**`, `` `code` `` (use it for URLs the assistant must open), lists, headings, links, `> notes` and tables. A cheat sheet sits under each text area.
+
+### Skill links and usage logging
+
+A skill can have a **link template**: the website it opens, with a placeholder where the value goes, e.g. `https://ovi.rdw.nl/?kenteken={kenteken}`. The assistant then does not get that website, but a link through AssistantSupport:
+
+```
+https://assistant.example.com/?pass=…&page=go&skill=0ab57a175f3d&q={kenteken}
+```
+
+When it opens that link with the value filled in, AssistantSupport logs the use (skill, value, time) and forwards it to the website. Logging is a side effect of the lookup itself, so the assistant can't forget it. Example skill:
+
+- **Name:** Kentekens opzoeken
+- **Link template:** `https://ovi.rdw.nl/?kenteken={kenteken}`
+- **Description:**
+
+  ```markdown
+  Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
+
+  1. Haal streepjes en spaties uit het kenteken: `AB-123-C` wordt `AB123C`.
+  2. Open de link van deze skill, met het kenteken ingevuld.
+  3. Vertel kort het merk, het model, de kleur en wanneer de APK verloopt.
+
+  > Open altijd de link. Zeg nooit dat je dit niet kunt opzoeken.
+  ```
 
 ## Assistant URLs (port 80)
 
@@ -61,6 +77,7 @@ Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
 | `/?pass=PASS` | Private context: backstory, skills, links, the 5 most recent memories |
 | `/?pass=PASS&page=history` | Memory history: a list of weeks, each with a link |
 | `/?pass=PASS&page=history&week=2026-W46` | The memories of one week, with links to the weeks before and after |
+| `/?pass=PASS&page=go&skill=ID&q=VALUE` | Logs a use of the skill and forwards (302) to its link template with the value filled in |
 | `/?pass=PASS&page=memories[&q=word]` | Search all memories (without `q`: the 50 newest) |
 | `/?pass=PASS&page=remember&title=…&summary=…&points=a\|b` | Saves a memory (`note=` works as an alias for `summary=`) |
 
@@ -111,6 +128,7 @@ Everything you can change in the admin panel is stored in `/config/settings.json
 /data/memories/*.json         one file per memory
 /data/content/public/*.md     public pages (index.md = welcome page)
 /data/visitors.json           visitor overview for the Security page
+/data/skill-usage.json        skill usage log (the newest 1000 uses)
 /data/failures.json           wrong-passphrase counter (lockout)
 /data/geo/                    DB-IP Lite country database
 ```

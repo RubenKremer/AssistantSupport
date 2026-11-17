@@ -58,6 +58,13 @@ function render_context_page(string $privateBase): string
             $tag   = ($s['tag'] ?? '') !== '' ? ' <small>(' . e($s['tag']) . ')</small>' : '';
             $html .= '<h3>' . e($s['name'] ?? '') . $tag . '</h3>'
                 . markdown_to_html(demote_headings((string) ($s['description'] ?? ''), 2));
+            if (($s['link'] ?? '') !== '') {
+                $placeholder = link_placeholder((string) $s['link']);
+                $html .= '<p><strong>Link for this skill:</strong> open this link'
+                    . ($placeholder !== '' ? ', with <code>{' . e($placeholder) . '}</code> replaced by the value you look up' : '')
+                    . '. It takes you straight to the right page.</p>'
+                    . '<pre><code>' . e(skill_go_link($privateBase, $s)) . '</code></pre>';
+            }
         }
     }
 
@@ -190,6 +197,39 @@ function render_memories_page(string $privateBase, string $query): string
         $html .= '</ul>';
     }
     return $html . '<p><a href="' . e($privateBase) . '">Back to your context</a></p>';
+}
+
+/**
+ * Handles &page=go&skill=ID&q=VALUE: logs the use of the skill and forwards
+ * the assistant to the skill's website. Never returns.
+ */
+function handle_go(string $privateBase): never
+{
+    $back  = '<p><a href="' . e($privateBase) . '">Back to your context</a></p>';
+    $skill = find_by_id(load_context()['skills'], (string) ($_GET['skill'] ?? ''));
+    if ($skill === null || empty($skill['enabled']) || ($skill['link'] ?? '') === '') {
+        render('Unknown skill', '<h1>Unknown skill</h1><p>This skill does not exist, is switched off, or has no link. Check the skills on your private page.</p>' . $back, 404);
+    }
+
+    $query       = clean_line((string) ($_GET['q'] ?? ''), 200);
+    $placeholder = link_placeholder((string) $skill['link']);
+    if ($placeholder !== '' && ($query === '' || preg_match(SKILL_PLACEHOLDER, $query))) {
+        render('Fill in the value', '<h1>Fill in the value first</h1>'
+            . '<p>Replace <code>{' . e($placeholder) . '}</code> in the link with the value you want to look up, then open it again:</p>'
+            . '<pre><code>' . e(skill_go_link($privateBase, $skill)) . '</code></pre>' . $back);
+    }
+
+    $target = skill_target_url((string) $skill['link'], $query);
+    record_skill_use($skill, $query);
+
+    // Forward. The page body is a fallback for clients that don't follow redirects.
+    http_response_code(302);
+    header('Location: ' . $target);
+    header('Content-Type: text/html; charset=utf-8');
+    echo assistant_page_html('Forwarding', '<h1>Opening ' . e((string) $skill['name']) . '</h1>'
+        . '<p>If you are not forwarded automatically, open this address:</p>'
+        . '<pre><code>' . e($target) . '</code></pre>', base_url());
+    exit;
 }
 
 /** Handles &page=remember. Returns the page HTML. */

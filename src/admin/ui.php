@@ -125,6 +125,7 @@ const ICONS = [
     'search'    => '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
     'edit'      => '<path d="M4 20h4L19 9l-4-4L4 16v4z"/>',
     'trash'     => '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
+    'usage'     => '<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>',
     'public'    => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/>',
     'refresh'   => '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
 ];
@@ -189,7 +190,7 @@ function search_form(string $page, string $query, string $placeholder, array $ex
 
 const ADMIN_NAV = [
     'Context'   => ['backstory' => 'Backstory', 'skills' => 'Skills', 'links' => 'Links', 'public' => 'Public page'],
-    'History'   => ['memories' => 'Memories'],
+    'History'   => ['memories' => 'Memories', 'usage' => 'Skill usage'],
     'Configure' => ['security' => 'Security', 'settings' => 'Settings'],
 ];
 
@@ -200,7 +201,11 @@ function admin_page(string $active, string $title, string $content, string $page
         $nav .= '<div class="group"><span class="group-label">' . $group . '</span>';
         foreach ($items as $key => $label) {
             $current = $key === $active ? ' aria-current="page"' : '';
-            $count   = $key === 'memories' ? '<span class="count">' . count_memories() . '</span>' : '';
+            $count   = match ($key) {
+                'memories' => '<span class="count">' . count_memories() . '</span>',
+                'usage'    => '<span class="count">' . count(list_skill_uses()) . '</span>',
+                default    => '',
+            };
             $nav .= '<a href="?p=' . $key . '"' . $current . '>' . icon($key) . '<span>' . $label . '</span>' . $count . '</a>';
         }
         $nav .= '</div>';
@@ -430,6 +435,10 @@ input[readonly]{background:#FAFAFA;color:#525252}
 .md-body blockquote{margin-left:0;padding:10px 14px;border-radius:10px;background:#FAFAFA;border:1px solid #EDEDED}
 .md-body table{min-width:0;width:auto;font-size:14px}
 .md-body th,.md-body td{border:1px solid #EDEDED;padding:6px 10px}
+.uses{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:#4338CA;text-decoration:none}
+.uses:hover{text-decoration:underline}
+.uses svg{width:13px;height:13px}
+tr.selected{background:#F5F5FF}
 iframe.preview{width:100%;height:900px;border:1px solid #EDEDED;border-radius:14px;background:#FFFFFF}
 .md-help{font-size:13px}
 .md-help summary{cursor:pointer;color:#525252;font-weight:500}

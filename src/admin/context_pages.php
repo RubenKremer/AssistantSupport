@@ -70,7 +70,7 @@ function view_skills(): never
 
     if (isset($_GET['edit'])) {
         $id    = (string) $_GET['edit'];
-        $skill = $id === 'new' ? ['id' => 'new', 'name' => '', 'tag' => '', 'description' => '', 'enabled' => true] : find_by_id($skills, $id);
+        $skill = $id === 'new' ? ['id' => 'new', 'name' => '', 'tag' => '', 'description' => '', 'link' => '', 'enabled' => true] : find_by_id($skills, $id);
         if ($skill === null) {
             flash('That skill no longer exists.', 'error');
             redirect_to(['p' => 'skills']);
@@ -83,13 +83,19 @@ function view_skills(): never
     $filtered = $query === '' ? $skills : array_filter($skills, fn ($s) => str_contains(
         mb_strtolower(($s['name'] ?? '') . ' ' . ($s['tag'] ?? '') . ' ' . ($s['description'] ?? '')), mb_strtolower($query)));
 
-    $rows = '';
+    $usage = skill_usage_summary();
+    $rows  = '';
     foreach ($filtered as $s) {
         $on   = !empty($s['enabled']);
         $name = (string) ($s['name'] ?? '');
         $tag  = ($s['tag'] ?? '') !== '' ? '<span class="tag">' . e($s['tag']) . '</span>' : '';
+        $uses = '';
+        if (($s['link'] ?? '') !== '') {
+            $count = $usage[$s['id']]['total'] ?? 0;
+            $uses  = '<a class="uses" href="?p=usage&amp;skill=' . e($s['id']) . '">' . icon('links') . $count . ' ' . ($count === 1 ? 'use' : 'uses') . '</a>';
+        }
         $rows .= '<li' . ($on ? '' : ' class="off"') . '>'
-            . '<div class="row-main"><span class="row-title">' . e($name) . $tag . '</span><span class="muted">' . e(markdown_excerpt((string) ($s['description'] ?? ''))) . '</span></div>'
+            . '<div class="row-main"><span class="row-title">' . e($name) . $tag . $uses . '</span><span class="muted">' . e(markdown_excerpt((string) ($s['description'] ?? ''))) . '</span></div>'
             . '<div class="actions">'
             . post_button('skills', 'toggle_skill', ['id' => $s['id']], '', 'switch', ($on ? 'Disable ' : 'Enable ') . $name, ' role="switch" aria-checked="' . ($on ? 'true' : 'false') . '"')
             . '<a class="icon-btn" href="?p=skills&amp;edit=' . e($s['id']) . '" aria-label="Edit ' . e($name) . '">' . icon('edit') . '</a>'
@@ -122,6 +128,11 @@ function skill_editor(array $skill): never
         . '<div class="field"><div class="field-head"><label for="sd">Description</label><span class="hint">Markdown supported</span></div>'
         . '<textarea id="sd" name="description" rows="12" maxlength="5000">' . e((string) $skill['description']) . '</textarea></div>'
         . markdown_help()
+        . '<div class="field"><label for="sl">Link template <span class="hint">optional · every use is logged</span></label>'
+        . '<input id="sl" type="text" inputmode="url" name="link" maxlength="1000" placeholder="https://ovi.rdw.nl/?kenteken={kenteken}" value="' . e((string) ($skill['link'] ?? '')) . '">'
+        . '<span class="hint">The website this skill opens. Put <code>{name}</code> where the value goes, e.g. <code>{kenteken}</code>. '
+        . 'The assistant then gets a link through AssistantSupport instead: it logs the use and forwards to this website. '
+        . 'You don\'t need to put the website address in the description as well.</span></div>'
         . '<label class="check"><input type="checkbox" name="enabled" value="1"' . (!empty($skill['enabled']) ? ' checked' : '') . '> Enabled (sent to the assistant)</label>'
         . '<div class="head-actions"><button type="submit" class="btn">Save skill</button><a class="btn ghost" href="?p=skills">Cancel</a></div>'
         . '</form>';
@@ -139,11 +150,17 @@ function post_skills(array $in): never
             flash('A skill needs a name.', 'error');
             redirect_to(['p' => 'skills', 'edit' => $id]);
         }
+        $link = normalize_link_template(clean_line((string) ($in['link'] ?? ''), 1000));
+        if ($link === null) {
+            flash('The link template must be a valid http(s) address, like https://ovi.rdw.nl/?kenteken={kenteken}.', 'error');
+            redirect_to(['p' => 'skills', 'edit' => $id]);
+        }
         $skill = [
             'id'          => $id === 'new' ? new_id() : $id,
             'name'        => $name,
             'tag'         => clean_line((string) ($in['tag'] ?? ''), 40),
             'description' => clean_text((string) ($in['description'] ?? ''), 5000),
+            'link'        => $link,
             'enabled'     => !empty($in['enabled']),
         ];
         update_context(function (array $c) use ($skill, $id) {
