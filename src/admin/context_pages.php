@@ -89,7 +89,7 @@ function view_skills(): never
         $name = (string) ($s['name'] ?? '');
         $tag  = ($s['tag'] ?? '') !== '' ? '<span class="tag">' . e($s['tag']) . '</span>' : '';
         $rows .= '<li' . ($on ? '' : ' class="off"') . '>'
-            . '<div class="row-main"><span class="row-title">' . e($name) . $tag . '</span><span class="muted">' . e((string) ($s['description'] ?? '')) . '</span></div>'
+            . '<div class="row-main"><span class="row-title">' . e($name) . $tag . '</span><span class="muted">' . e(markdown_excerpt((string) ($s['description'] ?? ''))) . '</span></div>'
             . '<div class="actions">'
             . post_button('skills', 'toggle_skill', ['id' => $s['id']], '', 'switch', ($on ? 'Disable ' : 'Enable ') . $name, ' role="switch" aria-checked="' . ($on ? 'true' : 'false') . '"')
             . '<a class="icon-btn" href="?p=skills&amp;edit=' . e($s['id']) . '" aria-label="Edit ' . e($name) . '">' . icon('edit') . '</a>'
@@ -112,14 +112,16 @@ function view_skills(): never
 function skill_editor(array $skill): never
 {
     $isNew = $skill['id'] === 'new';
-    $html = page_header($isNew ? 'New skill' : 'Edit skill', 'Describe what your assistant can do, in one or two sentences.')
+    $html = page_header($isNew ? 'New skill' : 'Edit skill', 'Describe what your assistant can do, and how to do it.')
         . '<form method="post" action="?p=skills" class="card stack">' . csrf_field()
         . '<input type="hidden" name="action" value="save_skill"><input type="hidden" name="id" value="' . e($skill['id']) . '">'
         . '<div class="grid2">'
         . '<div class="field"><label for="sn">Name</label><input id="sn" type="text" name="name" maxlength="100" required value="' . e((string) $skill['name']) . '"></div>'
         . '<div class="field"><label for="st">Tag <span class="hint">optional</span></label><input id="st" type="text" name="tag" maxlength="40" value="' . e((string) $skill['tag']) . '"></div>'
         . '</div>'
-        . '<div class="field"><label for="sd">Description</label><textarea id="sd" name="description" rows="4" maxlength="1000">' . e((string) $skill['description']) . '</textarea></div>'
+        . '<div class="field"><div class="field-head"><label for="sd">Description</label><span class="hint">Markdown supported</span></div>'
+        . '<textarea id="sd" name="description" rows="12" maxlength="5000">' . e((string) $skill['description']) . '</textarea></div>'
+        . markdown_help()
         . '<label class="check"><input type="checkbox" name="enabled" value="1"' . (!empty($skill['enabled']) ? ' checked' : '') . '> Enabled (sent to the assistant)</label>'
         . '<div class="head-actions"><button type="submit" class="btn">Save skill</button><a class="btn ghost" href="?p=skills">Cancel</a></div>'
         . '</form>';
@@ -141,7 +143,7 @@ function post_skills(array $in): never
             'id'          => $id === 'new' ? new_id() : $id,
             'name'        => $name,
             'tag'         => clean_line((string) ($in['tag'] ?? ''), 40),
-            'description' => clean_line((string) ($in['description'] ?? ''), 1000),
+            'description' => clean_text((string) ($in['description'] ?? ''), 5000),
             'enabled'     => !empty($in['enabled']),
         ];
         update_context(function (array $c) use ($skill, $id) {

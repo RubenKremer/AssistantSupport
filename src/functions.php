@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 
 // Unraid-style layout: everything you edit or the app writes lives in /data,
 // settings live in /config. Both can be overridden for local development.
@@ -71,17 +71,29 @@ function page_title(string $markdown): string
 function markdown_to_html(string $markdown): string
 {
     static $converter = null;
-    $converter ??= new CommonMarkConverter([
+    // GitHub-flavoured: also tables, ~~strikethrough~~, task lists and bare URLs as links.
+    $converter ??= new GithubFlavoredMarkdownConverter([
         'html_input'         => 'escape',
         'allow_unsafe_links' => false,
     ]);
     return (string) $converter->convert($markdown);
 }
 
-/** Makes every heading one level smaller, so "## x" inside a section becomes "### x". */
-function demote_headings(string $markdown): string
+/**
+ * Makes every heading $levels levels smaller, so "# x" inside an h2 section
+ * becomes "### x". Never smaller than h6.
+ */
+function demote_headings(string $markdown, int $levels = 1): string
 {
-    return (string) preg_replace('/^(#{1,5})(?=\s)/m', '#$1', $markdown);
+    return (string) preg_replace_callback('/^(#{1,6})(?=\s)/m',
+        fn ($m) => str_repeat('#', min(6, strlen($m[1]) + $levels)), $markdown);
+}
+
+/** Markdown as plain text, shortened: for previews in lists. */
+function markdown_excerpt(string $markdown, int $max = 220): string
+{
+    $text = trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags(markdown_to_html($markdown)), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    return mb_strlen($text) > $max ? rtrim(mb_substr($text, 0, $max - 1)) . '…' : $text;
 }
 
 function format_date(?string $iso, bool $withTime = true): string

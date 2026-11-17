@@ -145,6 +145,26 @@ function post_button(string $page, string $action, array $fields, string $label,
     return $html . '<button type="submit" class="' . e($class) . '"' . $aria . $extraAttrs . '>' . $label . '</button></form>';
 }
 
+/** A short, collapsible Markdown cheat sheet for under text areas. No JavaScript: <details>. */
+function markdown_help(): string
+{
+    $rows = [
+        ['**important**', 'bold, for things the assistant must not miss'],
+        ['`https://example.com/?q={value}`', 'code, for URLs and exact text to use'],
+        ['- item', 'a bullet list (one per line)'],
+        ['1. step', 'numbered steps'],
+        ['## Heading', 'a heading inside the text'],
+        ['[label](https://…)', 'a link'],
+        ['> note', 'a highlighted note'],
+    ];
+    $html = '';
+    foreach ($rows as [$syntax, $meaning]) {
+        $html .= '<tr><td><code>' . e($syntax) . '</code></td><td class="muted">' . e($meaning) . '</td></tr>';
+    }
+    return '<details class="md-help"><summary>Markdown cheat sheet</summary>'
+        . '<table><tbody>' . $html . '</tbody></table></details>';
+}
+
 function page_header(string $title, string $subtitle, string $actions = ''): string
 {
     return '<header class="page-head"><div><h1>' . e($title) . '</h1><p class="sub">' . e($subtitle) . '</p></div>'
@@ -395,5 +415,20 @@ input[readonly]{background:#FAFAFA;color:#525252}
 .blocked{list-style:none;margin:0;padding:0;border:1px solid #EDEDED;border-radius:12px;overflow:hidden}
 .blocked li{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 16px;font-size:13px}
 .blocked li+li{border-top:1px solid #F2F2F2}
+.md-body{font-size:15px;line-height:1.7;color:#262626}
+.md-body>*{margin:0 0 10px}
+.md-body>:last-child{margin-bottom:0}
+.md-body h3,.md-body h4,.md-body h5,.md-body h6{font-size:15px;margin-top:16px}
+.md-body ul,.md-body ol{padding-left:22px}
+.md-body pre{padding:12px 14px;border-radius:10px;background:#F5F5F5;overflow-x:auto}
+.md-body pre code{padding:0;background:none}
+.md-body blockquote{margin-left:0;padding:10px 14px;border-radius:10px;background:#FAFAFA;border:1px solid #EDEDED}
+.md-body table{min-width:0;width:auto;font-size:14px}
+.md-body th,.md-body td{border:1px solid #EDEDED;padding:6px 10px}
+.md-help{font-size:13px}
+.md-help summary{cursor:pointer;color:#525252;font-weight:500}
+.md-help table{min-width:0;width:auto;margin-top:8px}
+.md-help td{padding:4px 16px 4px 0;border:0}
+.md-help tbody tr:hover{background:transparent}
 @media (max-width:600px){.content{padding:28px 16px 48px}.mem-detail{padding:20px}.mem-list{border-right:0;border-bottom:1px solid #EDEDED}}
 CSS;

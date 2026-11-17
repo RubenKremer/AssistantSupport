@@ -7,7 +7,7 @@
 declare(strict_types=1);
 
 const MAX_TITLE_LENGTH   = 120;
-const MAX_SUMMARY_LENGTH = 2000;
+const MAX_SUMMARY_LENGTH = 5000;
 const MAX_POINTS         = 10;
 
 function is_valid_memory_id(string $id): bool
@@ -30,7 +30,7 @@ function parse_points(string $raw): array
 /** A title from the first words of the summary, for when none was given. */
 function title_from_summary(string $summary): string
 {
-    $words = preg_split('/\s+/', $summary, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $words = preg_split('/\s+/', markdown_excerpt($summary, 300), -1, PREG_SPLIT_NO_EMPTY) ?: [];
     $title = implode(' ', array_slice($words, 0, 8));
     return count($words) > 8 ? $title . '…' : $title;
 }

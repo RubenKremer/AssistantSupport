@@ -19,7 +19,7 @@ function view_memories(): never
         $href    = '?' . http_build_query(['p' => 'memories', 'id' => $m['id']] + $keep);
         $items  .= '<li><a class="mem" href="' . e($href) . '" aria-current="' . $current . '">'
             . '<span class="mem-top"><span>' . e($m['title']) . '</span><span class="mem-when">' . e(format_date($m['created'], false)) . '</span></span>'
-            . '<span class="mem-sum">' . e($m['summary']) . '</span></a></li>';
+            . '<span class="mem-sum">' . e(markdown_excerpt($m['summary'], 160)) . '</span></a></li>';
     }
     if ($items === '') {
         $items = '<li class="muted" style="padding:12px">' . ($query === '' ? 'No memories yet.' : 'Nothing matches “' . e($query) . '”.') . '</li>';
@@ -50,7 +50,9 @@ function memory_detail(?array $m, array $keep): string
             . '<input type="hidden" name="action" value="save_memory"><input type="hidden" name="id" value="' . e($m['id']) . '">'
             . '<h2>Edit memory</h2>'
             . '<div class="field"><label for="mt">Title</label><input id="mt" type="text" name="title" maxlength="' . MAX_TITLE_LENGTH . '" required value="' . e($m['title']) . '"></div>'
-            . '<div class="field"><label for="ms">Summary</label><textarea id="ms" name="summary" rows="6" maxlength="' . MAX_SUMMARY_LENGTH . '">' . e($m['summary']) . '</textarea></div>'
+            . '<div class="field"><div class="field-head"><label for="ms">Summary</label><span class="hint">Markdown supported</span></div>'
+            . '<textarea id="ms" name="summary" rows="12" maxlength="' . MAX_SUMMARY_LENGTH . '">' . e($m['summary']) . '</textarea></div>'
+            . markdown_help()
             . '<div class="field"><label for="mp">Key points <span class="hint">one per line</span></label><textarea id="mp" name="points" rows="5">' . e(implode("\n", $m['points'])) . '</textarea></div>'
             . '<div class="head-actions"><button type="submit" class="btn">Save</button><a class="btn ghost" href="?' . e(http_build_query($self)) . '">Cancel</a></div>'
             . '</form>';
@@ -77,7 +79,7 @@ function memory_detail(?array $m, array $keep): string
         . '<a class="btn ghost small" href="?' . e(http_build_query($self + ['confirm' => 1])) . '">Delete</a>'
         . '</div></header>'
         . $confirm
-        . '<div class="stack" style="gap:8px"><span class="section-label">Summary</span><p class="summary">' . e($m['summary']) . '</p></div>'
+        . '<div class="stack" style="gap:8px"><span class="section-label">Summary</span><div class="md-body">' . markdown_to_html(demote_headings($m['summary'], 2)) . '</div></div>'
         . ($points !== '' ? '<div class="stack" style="gap:8px"><span class="section-label">Key points</span><ul class="points">' . $points . '</ul></div>' : '')
         . '</article>';
 }

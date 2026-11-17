@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 function memory_item_html(array $m): string
 {
-    $html = '<li><strong>' . e(format_date($m['created'])) . ' — ' . e($m['title']) . '</strong><br>' . e($m['summary']);
+    $html = '<li><strong>' . e(format_date($m['created'])) . ' — ' . e($m['title']) . '</strong>'
+        . markdown_to_html(demote_headings($m['summary'], 3));
     if ($m['points'] !== []) {
         $html .= '<ul>';
         foreach ($m['points'] as $point) {
@@ -49,12 +50,12 @@ function render_context_page(string $privateBase): string
     // Skills (enabled only)
     $skills = array_filter($c['skills'], fn ($s) => !empty($s['enabled']));
     if ($skills !== []) {
-        $html .= '<h2>Skills</h2><p>Things you can and may do for your user.</p><ul>';
+        $html .= '<h2>Skills</h2><p>Things you can and may do for your user. Follow the instructions of a skill when it applies.</p>';
         foreach ($skills as $s) {
-            $tag   = ($s['tag'] ?? '') !== '' ? ' <em>(' . e($s['tag']) . ')</em>' : '';
-            $html .= '<li><strong>' . e($s['name'] ?? '') . '</strong>' . $tag . ': ' . e($s['description'] ?? '') . '</li>';
+            $tag   = ($s['tag'] ?? '') !== '' ? ' <small>(' . e($s['tag']) . ')</small>' : '';
+            $html .= '<h3>' . e($s['name'] ?? '') . $tag . '</h3>'
+                . markdown_to_html(demote_headings((string) ($s['description'] ?? ''), 2));
         }
-        $html .= '</ul>';
     }
 
     // Links
@@ -111,7 +112,8 @@ function render_memories_page(string $privateBase, string $query): string
 /** Handles &page=remember. Returns the page HTML. */
 function handle_remember(string $privateBase): string
 {
-    $summary = clean_line((string) ($_GET['summary'] ?? $_GET['note'] ?? ''), MAX_SUMMARY_LENGTH);
+    // Markdown is allowed; keeps line breaks the assistant sends as %0A.
+    $summary = clean_text((string) ($_GET['summary'] ?? $_GET['note'] ?? ''), MAX_SUMMARY_LENGTH);
     $title   = clean_line((string) ($_GET['title'] ?? ''), MAX_TITLE_LENGTH);
     $points  = parse_points((string) ($_GET['points'] ?? ''));
 

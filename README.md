@@ -30,9 +30,22 @@ The admin panel is a separate site with its own document root, so nothing of it 
 Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN_PASSWORD` the admin panel stays disabled.
 
 - **Backstory**: assistant name, role, tone, default language and a Markdown backstory.
-- **Skills**: what the assistant can do; only enabled skills are sent.
+- **Skills**: what the assistant can do and how, in Markdown; only enabled skills are sent.
 - **Links**: dashboards, docs and tools you use often.
-- **Memories**: browse, search, edit and delete what the assistant saved.
+- **Memories**: browse, search, edit and delete what the assistant saved. Summaries are Markdown.
+
+The backstory, skill descriptions and memory summaries support GitHub-flavoured Markdown: `**bold**`, `` `code` `` (use it for URLs the assistant must open), lists, headings, links, `> notes` and tables. A cheat sheet sits under each text area. For example, a skill:
+
+```markdown
+Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
+
+1. Haal streepjes en spaties uit het kenteken: `AB-123-C` wordt `AB123C`.
+2. Open deze URL, met het kenteken ingevuld:
+   `https://ovi.rdw.nl/?kenteken={kenteken}`
+3. Vertel kort het merk, het model, de kleur en wanneer de APK verloopt.
+
+> Open altijd de URL. Zeg nooit dat je dit niet kunt opzoeken.
+```
 - **Security**: browsers seen in the last 30 days, a browser allowlist and a geo lock, each with an on/off switch, and the recently blocked requests (see below).
 - **Settings**: the passphrase (with "Suggest one"), lockout limits and status, the public address, the welcome page, and the admin account (read-only).
 
