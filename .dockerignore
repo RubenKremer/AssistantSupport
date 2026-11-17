@@ -1,0 +1,6 @@
+.git
+vendor
+appdata
+.env
+README.md
+docker-compose.yml

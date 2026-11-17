@@ -1,0 +1,155 @@
+# AssistantSupport
+
+A small, self-hosted memory and knowledge base for voice assistants (like Grok in a Tesla) that start every session fresh and can only read web pages with GET requests.
+
+Single user, PHP, no database server, no JavaScript. Runs as one Docker container with an Unraid-friendly `/data` + `/config` layout.
+
+## How it works
+
+1. You tell the assistant: *"Read https://assistant.example.com"*.
+2. That public welcome page tells the assistant to ask you for the passphrase: a sentence of at least three words.
+3. You say the sentence. The assistant opens `https://assistant.example.com/?pass=the-purple-elephant-sings-loudly`.
+4. That one private page holds everything: who the assistant is (backstory, tone, language), its enabled skills, your links and the 10 most recent memories.
+5. The assistant searches older memories and saves new ones, all with GET requests:
+   - `/?pass=…&page=memories&q=invoice`
+   - `/?pass=…&page=remember&title=Short+title&summary=What+happened&points=First|Second`
+
+You manage all of it in the admin panel.
+
+## Two ports
+
+| Container port | What | Who reaches it |
+|---|---|---|
+| `80` | Assistant side (the URLs below) | The internet, through your reverse proxy with HTTPS |
+| `8080` | Admin panel | Only your local network. Never forward this port. |
+
+The admin panel is a separate site with its own document root, so nothing of it can be reached through port 80.
+
+## Admin panel (port 8080)
+
+Sign in with `ADMIN_USER` (default `admin`) and `ADMIN_PASSWORD`. Without `ADMIN_PASSWORD` the admin panel stays disabled.
+
+- **Backstory**: assistant name, role, tone, default language and a Markdown backstory.
+- **Skills**: what the assistant can do; only enabled skills are sent.
+- **Links**: dashboards, docs and tools you use often.
+- **Memories**: browse, search, edit and delete what the assistant saved.
+- **Security**: which clients and countries may open the assistant side, the visitor list and the passphrase lockout (see below).
+- **Settings**: the passphrase, the public address, lockout limits and the public welcome page.
+
+## Assistant URLs (port 80)
+
+| URL | What it shows |
+|---|---|
+| `/` | Public welcome page with instructions for the assistant |
+| `/llms.txt` | The same page as plain Markdown |
+| `/?page=NAME` | Another public page (`/data/content/public/NAME.md`) |
+| `/?pass=PASS` | Private context: backstory, skills, links, recent memories |
+| `/?pass=PASS&page=memories[&q=word]` | All memories, or a search |
+| `/?pass=PASS&page=remember&title=…&summary=…&points=a\|b` | Saves a memory (`note=` works as an alias for `summary=`) |
+
+## Security
+
+### Passphrase
+
+- A sentence of at least three words, set under **Settings**. Capitals, spaces and punctuation are ignored, so "The purple elephant, sings loudly!" equals `the-purple-elephant-sings-loudly`.
+- Stored only as a one-way hash in `/config/settings.json`. It can be replaced, never shown.
+- After 5 wrong passphrases within 15 minutes the private area locks for 15 minutes (both adjustable). This blocks guessing, but someone who knows your URL could also use it to lock you out for a while. You can clear the lockout under **Security**.
+
+### Clients and countries
+
+Under **Security** you can allow only certain clients (a simplified user agent such as "Safari 18", "Chrome 131" or "Grok") with a minimum version, and only certain countries (from the requesting IP address).
+
+- Each has a mode: **Monitor** only logs what would be blocked, **Enforce** really blocks. New installs start in Monitor.
+- **Your assistant fetches pages from its provider's servers, not from your car.** The client name and country you see are those of the AI provider. Check the visitor list before switching to Enforce, or you lock your own assistant out.
+- Requests from your own network and from addresses without a known country are always allowed.
+- Behind a reverse proxy on your own network, the visitor's address is taken from `X-Forwarded-For`.
+- User agents can be faked and IP addresses can be routed through other countries. These rules stop random scanners; the passphrase remains the real lock.
+
+Countries come from the free [DB-IP Lite](https://db-ip.com) database (CC BY 4.0, "IP Geolocation by DB-IP"). The container downloads it on start into `/data/geo/` and refreshes it every 30 days. Set `GEO_DOWNLOAD=false` to turn that off; country checks are then skipped.
+
+### Other measures
+
+- **The passphrase is part of the URL.** That is unavoidable with GET-only clients. This container leaves query strings out of its access log, but **your reverse proxy (Nginx Proxy Manager, SWAG, Traefik, Cloudflare, …) may still log full URLs**. Check that, or disable its access logs for this host.
+- Use HTTPS, so the passphrase is encrypted in transit. Don't store anything here you would not want leaked (no passwords, no bank details).
+- The admin panel uses a session login with CSRF tokens on every form. Keep its port on your own network.
+- Pages are sent with `noindex`, `no-store`, `no-referrer` and `DENY` framing.
+
+## Settings and environment variables
+
+Everything you can change in the admin panel is stored in `/config/settings.json`. Only these are set on the container:
+
+| Variable | Meaning |
+|---|---|
+| `ADMIN_PASSWORD` | **Required for the admin panel.** Mask it in Unraid. |
+| `ADMIN_USER` | Admin user name. Default `admin`. |
+| `PUID` / `PGID` | User/group that owns `/data` and `/config`. Default `99`/`100` (Unraid nobody:users). |
+| `TZ` | Time zone for timestamps, e.g. `Europe/Amsterdam`. |
+| `GEO_DOWNLOAD` | `false` disables the DB-IP download. Default `true`. |
+
+## Files (container paths)
+
+```
+/config/settings.json         passphrase hash, public address, lockout, security rules
+/data/context.json            backstory, skills and links
+/data/memories/*.json         one file per memory
+/data/content/public/*.md     public pages (index.md = welcome page)
+/data/visitors.json           visitor overview for the Security page
+/data/failures.json           wrong-passphrase counter (lockout)
+/data/geo/                    DB-IP Lite country database
+```
+
+On first start the container copies a default welcome page and example context into `/data`. It never overwrites files that already exist.
+
+### How the welcome page is styled
+
+It is plain Markdown; the stylesheet in `src/layout.php` gives it its look:
+
+- A short line directly above the `# Title` becomes a small uppercase label.
+- A `>` blockquote becomes a highlighted card with a lock icon.
+- A numbered list (`1.`) becomes numbered steps; start each step with `### Step title`.
+- Fenced code blocks become code boxes. Use them for URLs the assistant must open.
+- `{{base}}` becomes the public address.
+
+## Running it
+
+### Docker Compose
+
+```sh
+cp .env.example .env      # then set ADMIN_PASSWORD in .env
+docker compose up -d --build
+```
+
+Open the admin panel at http://localhost:8081, sign in, and set a passphrase under **Settings**. The assistant side is at http://localhost:8080.
+
+### Unraid
+
+Add a container with:
+
+- Repository: your built image (e.g. `assistant-support:latest`, or a registry image)
+- Port: container `80` → host port of your choice (assistant side)
+- Port: container `8080` → another host port (admin panel)
+- Path: `/data` → `/mnt/user/appdata/assistant-support/data`
+- Path: `/config` → `/mnt/user/appdata/assistant-support/config`
+- Variables: `ADMIN_PASSWORD` (masked), `PUID=99`, `PGID=100`, `TZ=Europe/Amsterdam`
+
+Put **only the assistant port** behind your reverse proxy with HTTPS.
+
+## Project layout
+
+```
+public/index.php          assistant side (port 80)
+admin/index.php           admin panel router (port 8080)
+src/functions.php         shared bootstrap and helpers
+src/storage.php           JSON files (atomic writes, locking)
+src/settings.php          settings, passphrase, lockout
+src/context.php           backstory, skills, links
+src/memories.php          memories
+src/security.php          client/country rules, geo lookup, visitor log
+src/assistant.php         assistant-side pages
+src/layout.php            assistant-side layout and stylesheet
+src/admin/                admin pages, layout and stylesheet
+src/cli/update-geo.php    DB-IP Lite downloader
+public/fonts/             Inter and JetBrains Mono (SIL Open Font License)
+defaults/                 first-run content for /data
+docker/                   Apache config and entrypoint
+```
