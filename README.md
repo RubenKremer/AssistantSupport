@@ -112,11 +112,24 @@ It is plain Markdown; the stylesheet in `src/layout.php` gives it its look:
 
 ## Running it
 
+### Image
+
+CI publishes the image to GitHub Container Registry for `amd64` and `arm64`:
+
+- `ghcr.io/rubenkremer/assistantsupport:latest`: the latest build of `main`
+- `ghcr.io/rubenkremer/assistantsupport:1.2.3`: a release, when a git tag `v1.2.3` is pushed
+
+Every push and pull request is linted, built and smoke-tested first (`.github/workflows/ci.yml`). Run the same smoke test locally with:
+
+```sh
+docker build -t assistant-support:ci . && sh docker/smoke-test.sh assistant-support:ci
+```
+
 ### Docker Compose
 
 ```sh
 cp .env.example .env      # then set ADMIN_PASSWORD in .env
-docker compose up -d --build
+docker compose pull && docker compose up -d     # or: docker compose up -d --build
 ```
 
 Open the admin panel at http://localhost:8081, sign in, and set a passphrase under **Settings**. The assistant side is at http://localhost:8080.
@@ -125,7 +138,7 @@ Open the admin panel at http://localhost:8081, sign in, and set a passphrase und
 
 Add a container with:
 
-- Repository: your built image (e.g. `assistant-support:latest`, or a registry image)
+- Repository: `ghcr.io/rubenkremer/assistantsupport:latest`
 - Port: container `80` → host port of your choice (assistant side)
 - Port: container `8080` → another host port (admin panel)
 - Path: `/data` → `/mnt/user/appdata/assistant-support/data`

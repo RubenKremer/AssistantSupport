@@ -1,7 +1,9 @@
 services:
   assistant-support:
+    # Published by CI on every push to main. Remove "image" and keep "build"
+    # to build it yourself instead.
+    image: ghcr.io/rubenkremer/assistantsupport:latest
     build: .
-    image: assistant-support:latest
     container_name: assistant-support
     restart: unless-stopped
     ports:

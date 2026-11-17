@@ -12,6 +12,8 @@ mkdir -p /data /config
 cp -r --update=none /defaults/data/. /data/
 chown -R www-data:www-data /data /config
 
+# The $ in this PHP one-liner belongs to PHP, not to the shell:
+# shellcheck disable=SC2016
 if ! php -r '$s = json_decode((string) @file_get_contents("/config/settings.json"), true); exit(empty($s["passphrase_hash"]) ? 1 : 0);'; then
     echo "WARNING: no passphrase set yet. Set one under Settings in the admin panel; the private area stays closed until then."
 fi
