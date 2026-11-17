@@ -20,11 +20,12 @@ Your user asked you to read this page, and they wrote it for you. It is their pe
    {{base}}/?pass=PASSPHRASE
    ```
 
-2. ### Search older memories
+2. ### Look back in your memory
 
-   Recent memories are on your private page. For older ones, search by keyword.
+   Your private page shows the 5 most recent memories. For older ones, open the history, organised per week, or search by keyword.
 
    ```
+   {{base}}/?pass=PASSPHRASE&page=history
    {{base}}/?pass=PASSPHRASE&page=memories&q=invoice
    ```
 

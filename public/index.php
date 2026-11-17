@@ -7,7 +7,8 @@
  *   /llms.txt                                 the same page as plain Markdown
  *   /?page=NAME                               another public page (/data/content/public/NAME.md)
  *   /?pass=PASSPHRASE                         private context: backstory, skills, links, recent memories
- *   /?pass=PASSPHRASE&page=memories[&q=word]  all memories, or a search
+ *   /?pass=PASSPHRASE&page=history[&week=2026-W46]  memory history per week
+ *   /?pass=PASSPHRASE&page=memories[&q=word]  search memories (or the 50 newest)
  *   /?pass=PASSPHRASE&page=remember&title=&summary=&points=a|b   save a memory
  */
 
@@ -72,6 +73,12 @@ $privateBase = $baseUrl . '/?pass=' . urlencode($pass);
 switch ($page) {
     case 'index':
         render('Your context', render_context_page($privateBase));
+    case 'history':
+        $week = (string) ($_GET['week'] ?? '');
+        if ($week !== '' && !preg_match('/^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/', $week)) {
+            $week = '';
+        }
+        render('Memory history', render_history_page($privateBase, $week));
     case 'memories':
         render('Memories', render_memories_page($privateBase, clean_line((string) ($_GET['q'] ?? ''), 100)));
     case 'remember':

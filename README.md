@@ -9,9 +9,10 @@ Single user, PHP, no database server, no JavaScript. Runs as one Docker containe
 1. You tell the assistant: *"Read https://assistant.example.com"*.
 2. That public welcome page tells the assistant to ask you for the passphrase: a sentence of at least three words.
 3. You say the sentence. The assistant opens `https://assistant.example.com/?pass=the-purple-elephant-sings-loudly`.
-4. That one private page holds everything: who the assistant is (backstory, tone, language), its enabled skills, your links and the 10 most recent memories.
+4. That one private page holds everything: who the assistant is (backstory, tone, language), its enabled skills, your links and the 5 most recent memories. Older memories are one link away, organised per week.
 5. The assistant searches older memories and saves new ones, all with GET requests:
-   - `/?pass=…&page=memories&q=invoice`
+   - `/?pass=…&page=history` (memories per week)
+   - `/?pass=…&page=memories&q=invoice` (search)
    - `/?pass=…&page=remember&title=Short+title&summary=What+happened&points=First|Second`
 
 You manage all of it in the admin panel.
@@ -57,8 +58,10 @@ Je kunt **kentekengegevens opzoeken** als de gebruiker daarom vraagt.
 | `/` | Public welcome page with instructions for the assistant |
 | `/llms.txt` | The same page as plain Markdown |
 | `/?page=NAME` | Another public page (`/data/content/public/NAME.md`) |
-| `/?pass=PASS` | Private context: backstory, skills, links, recent memories |
-| `/?pass=PASS&page=memories[&q=word]` | All memories, or a search |
+| `/?pass=PASS` | Private context: backstory, skills, links, the 5 most recent memories |
+| `/?pass=PASS&page=history` | Memory history: a list of weeks, each with a link |
+| `/?pass=PASS&page=history&week=2026-W46` | The memories of one week, with links to the weeks before and after |
+| `/?pass=PASS&page=memories[&q=word]` | Search all memories (without `q`: the 50 newest) |
 | `/?pass=PASS&page=remember&title=…&summary=…&points=a\|b` | Saves a memory (`note=` works as an alias for `summary=`) |
 
 ## Security
@@ -112,7 +115,7 @@ Everything you can change in the admin panel is stored in `/config/settings.json
 /data/geo/                    DB-IP Lite country database
 ```
 
-On first start the container copies a default welcome page and example context into `/data`. It never overwrites files that already exist.
+On first start the container copies a default welcome page and example context into `/data`. It never overwrites files that already exist, so after an update that changes the default welcome page, edit yours under **Public page** if you want the new text.
 
 ### How the welcome page is styled
 
