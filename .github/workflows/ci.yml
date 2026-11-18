@@ -18,9 +18,12 @@ on:
 permissions:
   contents: read
 
+# One run per branch at a time. Pull requests cancel their older run; pushes
+# to main wait their turn instead, so every main commit gets a finished run
+# (a cancelled run would show the README badge as failing).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
