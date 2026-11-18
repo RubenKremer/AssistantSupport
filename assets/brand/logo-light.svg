@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 80" width="480" height="80">
+  <title>AssistantSupport</title>
+  <!-- Logo for light backgrounds: ink tile with the brackets mark, two-tone wordmark. -->
+  <rect x="4" y="8" width="64" height="64" rx="18" fill="#0A0A0A"/>
+  <g transform="translate(17.33 21.33) scale(1.5556)" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 5H6v14h2"/>
+    <path d="M16 5h2v14h-2"/>
+    <circle cx="12" cy="12" r="1.8" fill="#FFFFFF" stroke="none"/>
+  </g>
+  <text x="86" y="55" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="40" font-weight="600" letter-spacing="-1.4" fill="#0A0A0A">Assistant<tspan fill="#8A8A8A">Support</tspan></text>
+</svg>

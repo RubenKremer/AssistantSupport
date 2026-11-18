@@ -1,6 +1,18 @@
-# AssistantSupport
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg">
+    <img src="assets/brand/logo-light.svg" alt="AssistantSupport" width="400">
+  </picture>
+</p>
 
-A small, self-hosted memory and knowledge base for voice assistants (like Grok in a Tesla) that start every session fresh and can only read web pages with GET requests.
+<p align="center">
+  A small, self-hosted memory and knowledge base for voice assistants (like Grok in a Tesla)<br>
+  that start every session fresh and can only read web pages with GET requests.
+</p>
+
+<p align="center">
+  <a href="https://github.com/RubenKremer/AssistantSupport/actions/workflows/ci.yml"><img src="https://github.com/RubenKremer/AssistantSupport/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
 
 Single user, PHP, no database server, no JavaScript. Runs as one Docker container with an Unraid-friendly `/data` + `/config` layout.
 
@@ -201,7 +213,7 @@ src/admin/                admin pages, layout and stylesheet
 src/cli/update-geo.php    DB-IP Lite downloader
 public/fonts/             Inter and JetBrains Mono (SIL Open Font License)
 public/favicon.*          favicons (also copied into the admin site)
-assets/brand/             brand mark (icon.svg) and the 512 px Unraid app icon
+assets/brand/             brand mark (icon.svg), logos for light/dark backgrounds, 512 px Unraid app icon
 src/countries.php         country names for the geo lock
 defaults/                 first-run content for /data
 docker/                   Apache config and entrypoint
